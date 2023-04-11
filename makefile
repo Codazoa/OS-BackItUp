@@ -5,6 +5,9 @@ HDRS = copy.h options.h
 
 all: backitup
 
+run: backitup
+	./backitup
+
 backitup: $(OBJ)
 	$(CC) $(CFLAGS) -o backitup $(OBJ) -lpthread
 
