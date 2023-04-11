@@ -2,6 +2,7 @@
 #define COPY_H
 
 #include <stdio.h>
+#include <stdlib.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/sendfile.h>
@@ -10,6 +11,9 @@
 // in the current directory
 
 int copy(const char *src, const char *dest);
+
+void *backup(void *src, void *dest);
+void *restore(void *src, void *dest);
 
 
 #endif
