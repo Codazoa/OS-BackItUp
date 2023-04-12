@@ -148,15 +148,16 @@ void runRestore(char *path){
     Copy_args_t copy_args[backup_info->num_files];
     // iterate through files in backup
     for (int i = 0; i < backup_info->num_files; i++) {
-        if (DEBUG) printf("%s/%s [file]\n", backup_info->path, backup_info->file_list[i]);
+        if (DEBUG) printf("%s/%s [file]\n", dir_info->path, backup_info->file_list[i]);
         // spawn off a thread for the file
-        copy_args[i].path = backup_info->path;
+        copy_args[i].path = dir_info->path;
         copy_args[i].file_name = backup_info->file_list[i];
 
         if (pthread_create(&threads[i], NULL, restore, &copy_args[i]) != 0 ) {
             perror("Error creating thread");
         }
     }
+    free(backup_info->dir_list);
 
     // join the threads
     for (int i = 0; i < backup_info->num_files; i++) {

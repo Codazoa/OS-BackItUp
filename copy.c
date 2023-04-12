@@ -44,9 +44,7 @@ int copy(const char *src, const char *dest) {
     return result;
 }
 
-
-
-void *backup(void *args){
+void *backup(void *args) {
 
     Copy_args_t *file = (Copy_args_t *)args;
 
@@ -99,28 +97,24 @@ void *backup(void *args){
     }
     return NULL;
 }
+
 void *restore(void *args) {
 
     Copy_args_t *file = (Copy_args_t *)args;
 
-    char file_path[PATH_MAX];
+    char dest[PATH_MAX];
     char file_name[PATH_MAX];
-    char backup_path[PATH_MAX];
+    char src[PATH_MAX];
     
-    // Get destination path
-    size_t path_len = strlen(file->path);
-    strncpy(file_path, file->path, path_len - 8);
-    
-    size_t name_len = strlen(file->file_name);
-    strncpy(file_name, file->file_name, name_len - 4);
-    
-    strcat(file_path, "/");
-    char *dest = strcat(file_path, file_name);
+    // Create destination path
+    strcpy(file_name, file->file_name);
+    remove_bak_extension(file_name);
+    strcpy(dest, file->path);
+    strcat(dest, "/");
+    strcat(dest, file_name);
 
-    // Get source path
-    strcpy(backup_path, file->path);
-    strcat(backup_path, "/");
-    char *src = strcat(backup_path, file->file_name);
+    // Create source path (backup_path)
+    sprintf(src, "%s/%s/%s", file->path, ".backup", file->file_name);
 
     struct stat src_stat, dest_stat;
     printf("Restoring %s\n", file_name);
@@ -138,7 +132,7 @@ void *restore(void *args) {
         }
         
         if (src_stat.st_mtime > dest_stat.st_mtime) {
-            printf("WARNING: Overwriting %s", file_name);
+            printf("WARNING: Overwriting %s\n", file_name);
             if (copy(src, dest) < 0) {
                 fprintf(stderr, "unable to copy %s from backup %s\n", dest, src);
             } 
@@ -153,4 +147,17 @@ void *restore(void *args) {
         } 
     }
     return NULL;
+}
+
+void remove_bak_extension(char *filename) {
+    int len = strlen(filename);
+    // step backwards through the filename
+    for (int i = len - 1; i >= 0; i--) {
+        // at a . check if remaining words are bak
+        if (filename[i] == '.' && strcmp(&filename[i + 1], "bak") == 0) {
+            // null terminate string on .
+            filename[i] = '\0';
+            return;
+        }
+    }
 }

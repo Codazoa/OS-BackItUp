@@ -24,5 +24,6 @@ int copy(const char *src, const char *dest);
 void *backup(void *args);
 void *restore(void *args);
 
+void remove_bak_extension(char *filename);
 
 #endif

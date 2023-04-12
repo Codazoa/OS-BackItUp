@@ -1,5 +1,5 @@
 CC = gcc
-CFLAGS = -Wall -g #-Werror
+CFLAGS = -Wall -g -Werror
 OBJ = main.o copy.o
 HDRS = copy.h options.h
 
