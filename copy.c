@@ -2,6 +2,10 @@
 
 int copy(const char *src, const char *dest) {
     int in, out;
+    // Open source file
+    if ((in = open(src, O_RDONLY)) < 0){
+        return -1;
+    }
 
     // if destination file exists, open it. If not, then create it
     if (access(dest, F_OK) != -1) {
@@ -13,15 +17,11 @@ int copy(const char *src, const char *dest) {
     } else {
         if ((out = creat(dest, 0660)) < 0) {
             fprintf(stderr, "Unable to create destination file %s\n", dest);
+            close(in);
             return -1;
         }
     }
 
-    // Open source file
-    if ((in = open(src, O_RDONLY)) < 0){
-        fprintf(stderr, "Unable to read source file %s\n", src);
-        return -1;
-    }
 
     // get size of source file and send to destination
     off_t bytesCopied = 0;
@@ -34,9 +34,6 @@ int copy(const char *src, const char *dest) {
     }
 
     int result = sendfile(out, in, &bytesCopied, fileinfo.st_size);
-    if (result >= 0) {
-        printf("Copied %ld bytes from %s to %s\n", fileinfo.st_size, src, dest);
-    }
 
     close(out);
     close(in);
@@ -88,7 +85,7 @@ void *backup(void *args) {
             printf("WARNING: Overwriting %s\n", backup_file_name);
             remove(dest);
             if (copy(src, dest) < 0) {
-                fprintf(stderr, "unable to copy %s into backup %s\n", src, dest);
+                fprintf(stderr, "Unable to copy %s into backup %s.bak\n", file->file_name, file->file_name);
             } 
         } else { 
             printf("%s does not need backing up\n", backup_file_name);
@@ -97,7 +94,7 @@ void *backup(void *args) {
     } else {
         
         if (copy(src, dest) < 0) {
-            fprintf(stderr, "unable to copy %s into backup %s\n", src, dest);
+            fprintf(stderr, "Unable to copy %s into backup %s.bak\n", file->file_name, file->file_name);
         } 
     }
     return NULL;
