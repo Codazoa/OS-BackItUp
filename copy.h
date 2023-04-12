@@ -13,7 +13,7 @@
 typedef struct args {
     char *path; // path to directory of the file
     char *file_name; // name of file
-} copy_args;
+} Copy_args_t;
 
 int copy(const char *src, const char *dest);
 

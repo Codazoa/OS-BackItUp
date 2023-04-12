@@ -8,6 +8,7 @@
 #include <unistd.h>
 
 #include "options.h"
+#include "copy.h"
 
 // This file needs to recursively go down through the folders in the current folder
 // create .backup folder in current directory
@@ -17,14 +18,13 @@
 // parse command line arguments
 void parseArgs(int argc, char const *argv[], int *operation);
 
-void runBackup(DIR *dir);
+void runBackup(char *path);
 
-void runRestore(DIR *dir);
+void runRestore(char *path);
 
 int main(int argc, char const *argv[]){
 
     int operation = 0; // 1 for restore, 0 for backup
-    DIR *dir = NULL;
 
     parseArgs(argc, argv, &operation);
 
@@ -35,19 +35,12 @@ int main(int argc, char const *argv[]){
         exit(1);
     }
 
-    // open this directory
-    dir = opendir(dir_path);
-    if (dir == NULL) {
-        perror("backitup Error");
-        exit(1);
-    }
-
     if (DEBUG) printf("Operation %d, Directory Path: %s\n", operation, dir_path);
 
     if (operation == 0) {
-        runBackup(dir);
+        runBackup(dir_path);
     } else {
-        runRestore(dir);
+        runRestore(dir_path);
     }
 
     return 0;
@@ -59,15 +52,23 @@ void parseArgs(int argc, char const *argv[], int *operation){
     }
 }
 
-void runBackup(DIR *dir){
+void runBackup(char *path){
+    DIR *dir = NULL;
     struct dirent *entry = NULL;
     int has_backup_dir = 0;
     int num_files = 0;
     int num_dirs = 0;
     char **dir_list = NULL;
     char **file_list = NULL;
-    
-    if (DEBUG) printf("Backup\n");
+
+    if (DEBUG) printf("\nBackup: %s\n", path);
+
+    // open this directory
+    dir = opendir(path);
+    if (dir == NULL) {
+        perror("backitup Error");
+        exit(1);
+    }
 
     // analyze the directory information
     // check if .backup exists
@@ -104,10 +105,14 @@ void runBackup(DIR *dir){
             file_list[num_files - 1] = strdup(entry->d_name);
         }
     }
+    closedir(dir);
 
     // if no backup directory was found, create it
     if (!has_backup_dir) {
-        int result = mkdir(".backup", 777);
+        mode_t mode = S_IRWXU | S_IRWXG | S_IRWXO;
+        char backup_path[PATH_MAX];
+        sprintf(backup_path, "%s/%s", path, ".backup");
+        int result = mkdir(backup_path, mode);
 
         if (result == 0){
             printf(".backup created successfully.\n");
@@ -116,26 +121,41 @@ void runBackup(DIR *dir){
         }
     }
 
+    // base case when there are no more folders 
+    if (num_dirs == 0) {
+        return;
+    }
+
     // iterate through directories
     for (int i = 0; i < num_dirs; i++) {
         printf("%s [directory]\n", dir_list[i]);
         // recursively go down another folder
+        char new_path[PATH_MAX];
+        sprintf(new_path, "%s/%s", path, dir_list[i]);
+        runBackup(new_path);
     }
+    free(dir_list);
 
+    pthread_t threads[num_files];
     // iterate through files
     for (int i = 0; i < num_files; i++) {
         printf("%s [file]\n", file_list[i]);
-        // spawn off a thread
+        // spawn off a thread for the file
+        Copy_args_t copy_args = {path, file_list[i]};
+        if (pthread_create(&threads[i], NULL, backup, &copy_args) != 0 ) {
+            perror("Error creating thread");
+        }
     }
-
-    // free lists
-    free(dir_list);
     free(file_list);
 
-    closedir(dir);
+    // join the threads
+    for (int i = 0; i < num_files; i++) {
+        pthread_join(threads[i], NULL);
+    }
+
 }
 
-void runRestore(DIR *dir){
-    struct dirent *entry = readdir(dir);
-    if (DEBUG) printf("Restore: %s\n", entry->d_name);
+void runRestore(char *path){
+    // struct dirent *entry = readdir(dir);
+    // if (DEBUG) printf("Restore: %s\n", entry->d_name);
 }
