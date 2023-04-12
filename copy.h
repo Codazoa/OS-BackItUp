@@ -12,9 +12,9 @@
 // in the current directory
 
 typedef struct args {
-    char *path;
-    char *file_name;
-} copy_args;
+    char *path; // path to directory of the file
+    char *file_name; // name of file
+} Copy_args_t;
 
 int copy(const char *src, const char *dest);
 
