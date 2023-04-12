@@ -4,20 +4,20 @@ int copy(const char *src, const char *dest) {
     int in, out;
     // Open source file
     if ((in = open(src, O_RDONLY)) < 0){
-        fprintf(stderr, "Unable to read source file %s", src);
+        fprintf(stderr, "Unable to read source file %s\n", src);
         return -1;
     }
 
     // if destination file exists, open it. If not, then create it
     if (access(dest, F_OK) != -1) {
         if ((out = open(dest, 0660)) < 0){
-                fprintf(stderr, "Unable to open dest file %s for writing", dest);
+                fprintf(stderr, "Unable to open dest file %s for writing\n", dest);
                 return -1;
             }
 
     } else {
         if ((out = creat(dest, 0660)) < 0) {
-            fprintf(stderr, "Unable to create destination file %s", dest);
+            fprintf(stderr, "Unable to create destination file %s\n", dest);
             close(in);
             return -1;
         }
@@ -27,13 +27,13 @@ int copy(const char *src, const char *dest) {
     off_t bytesCopied = 0;
     struct stat fileinfo = {0};
     if (fstat(in, &fileinfo) < 0) {
-        fprintf(stderr, "Unable to read size of file %s", dest);
+        fprintf(stderr, "Unable to read size of file %s\n", dest);
         close(in);
         close(out);
         return -1;
     }
     int result = sendfile(out, in, &bytesCopied, fileinfo.st_size);
-    printf("Copied %ld bytes from %s to %s", fileinfo.st_size, src, dest);
+    printf("Copied %ld bytes from %s to %s\n", fileinfo.st_size, src, dest);
 
     close(in);
     close(out);
@@ -64,34 +64,34 @@ void *backup(void *args){
     char *dest = strcat(backup_path, backup_file_name);
 
     struct stat src_stat, dest_stat;
-    printf("Backing up %s", file->file_name);
+    printf("Backing up %s\n", file->file_name);
 
     // if destination already exists, only copy if source is more recent
     if (access(dest, F_OK) != -1) {
 
         if (stat(src, &src_stat) != 0) {
-            fprintf(stderr, "Unable to find stats for %p", src);
+            fprintf(stderr, "Unable to find stats for %s\n", src);
             exit(1);
         }
         if (stat(dest, &dest_stat) != 0) {
-            fprintf(stderr, "Unable to find stats for %p", dest);
+            fprintf(stderr, "Unable to find stats for %s\n", dest);
             exit(1);
         }
         
         if (src_stat.st_mtime > dest_stat.st_mtime) {
             printf("WARNING: Overwriting %s", backup_file_name);
             if (copy(src, dest) < 0) {
-                fprintf(stderr, "unable to copy %p into backup %p", src, dest);
+                fprintf(stderr, "unable to copy %s into backup %s\n", src, dest);
                 exit(1);
             } 
         } else { 
-            printf("%s does not need backing up", backup_file_name);
+            printf("%s does not need backing up\n", backup_file_name);
         }
 
     } else {
         
         if (copy(src, dest) < 0) {
-            fprintf(stderr, "unable to copy %p into backup %p", src, dest);
+            fprintf(stderr, "unable to copy %s into backup %s\n", src, dest);
             exit(1);
         } 
     }
@@ -122,34 +122,34 @@ void *restore(void *args) {
     char *src = strcat(backup_path, file->file_name);
 
     struct stat src_stat, dest_stat;
-    printf("Restoring %s", file_name);
+    printf("Restoring %s\n", file_name);
     
     // if destination already exists, only copy if source is more recent
     if (access(dest, F_OK) != -1) {
 
         if (stat(src, &src_stat) != 0) {
-            fprintf(stderr, "Unable to find stats for %p", src);
+            fprintf(stderr, "Unable to find stats for %s\n", src);
             exit(1);
         }
         if (stat(dest, &dest_stat) != 0) {
-            fprintf(stderr, "Unable to find stats for %p", dest);
+            fprintf(stderr, "Unable to find stats for %s\n", dest);
             exit(1);
         }
         
         if (src_stat.st_mtime > dest_stat.st_mtime) {
             printf("WARNING: Overwriting %s", file_name);
             if (copy(src, dest) < 0) {
-                fprintf(stderr, "unable to copy %p from backup %p", dest, src);
+                fprintf(stderr, "unable to copy %s from backup %s\n", dest, src);
                 exit(1);
             } 
         } else { 
-            printf("%s is already the most current version", file_name);
+            printf("%s is already the most current version\n", file_name);
         }
 
     } else {
         
         if (copy(src, dest) < 0) {
-            fprintf(stderr, "unable to copy %p from backup %p", dest, src);
+            fprintf(stderr, "unable to copy %s from backup %s\n", dest, src);
             exit(1);
         } 
     }
