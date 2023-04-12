@@ -56,7 +56,7 @@ void *backup(void *args){
     char *src = strcat(file_path, file->file_name);
 
     strcpy(backup_path, file->path);
-    strcat(backup_path, "/backup/");
+    strcat(backup_path, "/.backup/");
 
     strcpy(backup_file_name, file->file_name);
     strcat(backup_file_name, ".bak");
@@ -64,7 +64,7 @@ void *backup(void *args){
     char *dest = strcat(backup_path, backup_file_name);
 
     struct stat src_stat, dest_stat;
-    printf("Backing up %p", file->file_name);
+    printf("Backing up %s", file->file_name);
 
     // if destination already exists, only copy if source is more recent
     if (access(dest, F_OK) != -1) {
@@ -79,13 +79,13 @@ void *backup(void *args){
         }
         
         if (src_stat.st_mtime > dest_stat.st_mtime) {
-            printf("WARNING: Overwriting %p", dest);
+            printf("WARNING: Overwriting %s", backup_file_name);
             if (copy(src, dest) < 0) {
                 fprintf(stderr, "unable to copy %p into backup %p", src, dest);
                 exit(1);
             } 
         } else { 
-            printf("%p does not need backing up", backup_file_name);
+            printf("%s does not need backing up", backup_file_name);
         }
 
     } else {
@@ -108,7 +108,7 @@ void *restore(void *args) {
     
     // Get destination path
     size_t path_len = strlen(file->path);
-    strncpy(file_path, file->path, path_len - 8);
+    strncpy(file_path, file->path, path_len - 9);
     
     size_t name_len = strlen(file->file_name);
     strncpy(file_name, file->file_name, name_len - 4);
@@ -122,7 +122,7 @@ void *restore(void *args) {
     char *src = strcat(backup_path, file->file_name);
 
     struct stat src_stat, dest_stat;
-    printf("Restoring %p", dest);
+    printf("Restoring %s", file_name);
     
     // if destination already exists, only copy if source is more recent
     if (access(dest, F_OK) != -1) {
@@ -137,13 +137,13 @@ void *restore(void *args) {
         }
         
         if (src_stat.st_mtime > dest_stat.st_mtime) {
-            printf("WARNING: Overwriting %p", dest);
+            printf("WARNING: Overwriting %s", file_name);
             if (copy(src, dest) < 0) {
                 fprintf(stderr, "unable to copy %p from backup %p", dest, src);
                 exit(1);
             } 
         } else { 
-            printf("%p is already the most current version", dest);
+            printf("%s is already the most current version", file_name);
         }
 
     } else {
