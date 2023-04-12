@@ -79,7 +79,7 @@ void *backup(void *args){
         }
         
         if (src_stat.st_mtime > dest_stat.st_mtime) {
-            printf("WARNING: Overwriting %s", backup_file_name);
+            printf("WARNING: Overwriting %s\n", backup_file_name);
             if (copy(src, dest) < 0) {
                 fprintf(stderr, "unable to copy %s into backup %s\n", src, dest);
                 exit(1);
