@@ -3,6 +3,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <fcntl.h>
 #include <unistd.h>
 #include <sys/sendfile.h>
@@ -17,8 +18,8 @@ typedef struct args {
 
 int copy(const char *src, const char *dest);
 
-void *backup(void *src, void *dest);
-void *restore(void *src, void *dest);
+void *backup(void *args);
+void *restore(void *args);
 
 
 #endif

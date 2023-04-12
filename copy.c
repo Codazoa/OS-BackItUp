@@ -41,9 +41,29 @@ int copy(const char *src, const char *dest) {
     return result;
 }
 
-void *backup(void *src, void *dest){
+
+
+void *backup(void *args){
+
+    copy_args *file = (copy_args *)args;
+
+    char file_path[100];
+    char backup_path[100];
+    char backup_file_name[100];
+
+    strcpy(file_path, file->path);
+    char *src = strcat(file_path, file->file_name);
+
+    strcpy(backup_path, file->path);
+    strcat(backup_path, "/backup/");
+
+    strcpy(backup_file_name, file->file_name);
+    strcat(backup_file_name, ".bak");
+
+    char *dest = strcat(backup_path, backup_file_name);
+
     struct stat src_stat, dest_stat;
-    printf("Backing up %p", src);
+    printf("Backing up %p", file->file_name);
 
     // if destination already exists, only copy if source is more recent
     if (access(dest, F_OK) != -1) {
@@ -64,7 +84,7 @@ void *backup(void *src, void *dest){
                 exit(1);
             } 
         } else { 
-            printf("%p does not need backing up", dest);
+            printf("%p does not need backing up", backup_file_name);
         }
 
     } else {
@@ -77,8 +97,30 @@ void *backup(void *src, void *dest){
 
     exit(0);
 }
-void *restore(void *src, void *dest) {
-        struct stat src_stat, dest_stat;
+void *restore(void *args) {
+
+    copy_args *file = (copy_args *)args;
+
+    char file_path[100];
+    char file_name[100];
+    char backup_path[100];
+    
+    // Get destination path
+    size_t path_len = strlen(file->path);
+    strncpy(file_path, file->path, path_len - 8);
+    
+    size_t name_len = strlen(file->file_name);
+    strncpy(file_name, file->file_name, name_len - 4);
+    
+    strcat(file_path, "/");
+    char *dest = strcat(file_path, file_name);
+
+    // Get source path
+    strcpy(backup_path, file->path);
+    strcat(backup_path, "/");
+    char *src = strcat(backup_path, file->file_name);
+
+    struct stat src_stat, dest_stat;
     printf("Restoring %p", dest);
     
     // if destination already exists, only copy if source is more recent
