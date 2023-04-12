@@ -45,7 +45,7 @@ int copy(const char *src, const char *dest) {
 
 void *backup(void *args){
 
-    copy_args *file = (copy_args *)args;
+    Copy_args_t *file = (Copy_args_t *)args;
 
     char file_path[100];
     char backup_path[100];
@@ -99,7 +99,7 @@ void *backup(void *args){
 }
 void *restore(void *args) {
 
-    copy_args *file = (copy_args *)args;
+    Copy_args_t *file = (Copy_args_t *)args;
 
     char file_path[100];
     char file_name[100];
