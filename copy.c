@@ -47,9 +47,9 @@ void *backup(void *args){
 
     Copy_args_t *file = (Copy_args_t *)args;
 
-    char file_path[100];
-    char backup_path[100];
-    char backup_file_name[100];
+    char file_path[PATH_MAX];
+    char backup_path[PATH_MAX];
+    char backup_file_name[PATH_MAX];
 
     strcpy(file_path, file->path);
     strcat(file_path, "/");
@@ -95,16 +95,15 @@ void *backup(void *args){
             exit(1);
         } 
     }
-
-    exit(0);
+    return NULL;
 }
 void *restore(void *args) {
 
     Copy_args_t *file = (Copy_args_t *)args;
 
-    char file_path[100];
-    char file_name[100];
-    char backup_path[100];
+    char file_path[PATH_MAX];
+    char file_name[PATH_MAX];
+    char backup_path[PATH_MAX];
     
     // Get destination path
     size_t path_len = strlen(file->path);
@@ -153,6 +152,5 @@ void *restore(void *args) {
             exit(1);
         } 
     }
-
-    exit(0);
+    return NULL;
 }

@@ -120,14 +120,9 @@ void runBackup(char *path){
         }
     }
 
-    // base case when there are no more folders 
-    if (num_dirs == 0) {
-        return;
-    }
-
     // iterate through directories
     for (int i = 0; i < num_dirs; i++) {
-        printf("%s [directory]\n", dir_list[i]);
+        if (DEBUG) printf("%s [directory]\n", dir_list[i]);
         // recursively go down another folder
         char new_path[PATH_MAX];
         sprintf(new_path, "%s/%s", path, dir_list[i]);
@@ -136,22 +131,28 @@ void runBackup(char *path){
     free(dir_list);
 
     pthread_t threads[num_files];
+    Copy_args_t copy_args[num_files];
     // iterate through files
     for (int i = 0; i < num_files; i++) {
-        printf("%s [file]\n", file_list[i]);
+        if (DEBUG) printf("%s/%s [file]\n", path, file_list[i]);
         // spawn off a thread for the file
-        Copy_args_t copy_args = {path, file_list[i]};
-        if (pthread_create(&threads[i], NULL, backup, &copy_args) != 0 ) {
+        copy_args[i].path = path;
+        copy_args[i].file_name = file_list[i];
+        if (pthread_create(&threads[i], NULL, backup, &copy_args[i]) != 0 ) {
             perror("Error creating thread");
         }
     }
-    free(file_list);
 
     // join the threads
     for (int i = 0; i < num_files; i++) {
         pthread_join(threads[i], NULL);
     }
+    free(file_list);
 
+    // base case when there are no more folders 
+    if (num_dirs == 0) {
+        return;
+    }
 }
 
 void runRestore(char *path){
