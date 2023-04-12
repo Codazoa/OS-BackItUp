@@ -26,12 +26,10 @@ typedef struct {
 
 // parse command line arguments
 void parseArgs(int argc, char const *argv[], int *operation);
-
-Dir_info_t *getDirInfo(char *path);
-
 void runBackup(char *path);
-
 void runRestore(char *path);
+Dir_info_t *getDirInfo(char *path);
+void free_list(char **list, int size);
 
 int main(int argc, char const *argv[]){
 
@@ -91,7 +89,7 @@ void runBackup(char *path){
         sprintf(new_path, "%s/%s", path, dir_info->dir_list[i]);
         runBackup(new_path);
     }
-    free(dir_info->dir_list);
+    free_list(dir_info->dir_list, dir_info->num_dirs);
 
     pthread_t threads[dir_info->num_files];
     Copy_args_t copy_args[dir_info->num_files];
@@ -110,12 +108,15 @@ void runBackup(char *path){
     for (int i = 0; i < dir_info->num_files; i++) {
         pthread_join(threads[i], NULL);
     }
-    free(dir_info->file_list);
+    free_list(dir_info->file_list, dir_info->num_files);
 
     // base case when there are no more folders 
     if (dir_info->num_dirs == 0) {
+        free(dir_info);
         return;
     }
+
+    free(dir_info);
 }
 
 void runRestore(char *path){
@@ -134,10 +135,12 @@ void runRestore(char *path){
         sprintf(new_path, "%s/%s", path, dir_info->dir_list[i]);
         runRestore(new_path);
     }
-    free(dir_info->dir_list);
+    free_list(dir_info->dir_list, dir_info->num_dirs);
+    free_list(dir_info->file_list, dir_info->num_files);
 
     // if there is not a backup directory
     if (!dir_info->has_backup_dir) {
+        free(dir_info);
         return;
     }
 
@@ -157,20 +160,24 @@ void runRestore(char *path){
             perror("Error creating thread");
         }
     }
-    free(backup_info->dir_list);
+    free_list(backup_info->dir_list, backup_info->num_dirs);
 
     // join the threads
     for (int i = 0; i < backup_info->num_files; i++) {
         pthread_join(threads[i], NULL);
     }
-    free(backup_info->file_list);
+    free_list(backup_info->file_list, backup_info->num_files);
 
 
     // base case when there are no more folders 
     if (dir_info->num_dirs == 0) {
+        free(dir_info);
+        free(backup_info);
         return;
     }
 
+    free(backup_info);
+    free(dir_info);
 }
 
 Dir_info_t *getDirInfo(char *path) {
@@ -233,4 +240,11 @@ Dir_info_t *getDirInfo(char *path) {
     return_info->dir_list = dir_list;
     return_info->has_backup_dir = has_backup_dir;
     return return_info;
+}
+
+void free_list(char **list, int size){
+    for (int i = 0; i < size; i++) {
+        free(list[i]);
+    }
+    free(list);
 }
