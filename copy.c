@@ -109,7 +109,7 @@ void *restore(void *args) {
     
     // Get destination path
     size_t path_len = strlen(file->path);
-    strncpy(file_path, file->path, path_len - 9);
+    strncpy(file_path, file->path, path_len - 8);
     
     size_t name_len = strlen(file->file_name);
     strncpy(file_name, file->file_name, name_len - 4);
@@ -141,7 +141,6 @@ void *restore(void *args) {
             printf("WARNING: Overwriting %s", file_name);
             if (copy(src, dest) < 0) {
                 fprintf(stderr, "unable to copy %s from backup %s\n", dest, src);
-                exit(1);
             } 
         } else { 
             printf("%s is already the most current version\n", file_name);
@@ -151,7 +150,6 @@ void *restore(void *args) {
         
         if (copy(src, dest) < 0) {
             fprintf(stderr, "unable to copy %s from backup %s\n", dest, src);
-            exit(1);
         } 
     }
     return NULL;
