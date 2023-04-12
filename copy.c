@@ -86,7 +86,6 @@ void *backup(void *args){
             remove(dest);
             if (copy(src, dest) < 0) {
                 fprintf(stderr, "unable to copy %s into backup %s\n", src, dest);
-                exit(1);
             } 
         } else { 
             printf("%s does not need backing up\n", backup_file_name);
@@ -96,7 +95,6 @@ void *backup(void *args){
         
         if (copy(src, dest) < 0) {
             fprintf(stderr, "unable to copy %s into backup %s\n", src, dest);
-            exit(1);
         } 
     }
     return NULL;
