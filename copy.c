@@ -52,6 +52,7 @@ void *backup(void *args){
     char backup_file_name[100];
 
     strcpy(file_path, file->path);
+    strcat(file_path, "/");
     char *src = strcat(file_path, file->file_name);
 
     strcpy(backup_path, file->path);
