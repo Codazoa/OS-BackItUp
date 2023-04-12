@@ -32,8 +32,11 @@ int copy(const char *src, const char *dest) {
         close(out);
         return -1;
     }
+
     int result = sendfile(out, in, &bytesCopied, fileinfo.st_size);
-    printf("Copied %ld bytes from %s to %s\n", fileinfo.st_size, src, dest);
+    if (result >= 0) {
+        printf("Copied %ld bytes from %s to %s\n", fileinfo.st_size, src, dest);
+    }
 
     close(in);
     close(out);
@@ -80,6 +83,7 @@ void *backup(void *args){
         
         if (src_stat.st_mtime > dest_stat.st_mtime) {
             printf("WARNING: Overwriting %s\n", backup_file_name);
+            remove(dest);
             if (copy(src, dest) < 0) {
                 fprintf(stderr, "unable to copy %s into backup %s\n", src, dest);
                 exit(1);
