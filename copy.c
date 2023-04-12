@@ -2,11 +2,6 @@
 
 int copy(const char *src, const char *dest) {
     int in, out;
-    // Open source file
-    if ((in = open(src, O_RDONLY)) < 0){
-        fprintf(stderr, "Unable to read source file %s\n", src);
-        return -1;
-    }
 
     // if destination file exists, open it. If not, then create it
     if (access(dest, F_OK) != -1) {
@@ -18,9 +13,14 @@ int copy(const char *src, const char *dest) {
     } else {
         if ((out = creat(dest, 0660)) < 0) {
             fprintf(stderr, "Unable to create destination file %s\n", dest);
-            close(in);
             return -1;
         }
+    }
+
+    // Open source file
+    if ((in = open(src, O_RDONLY)) < 0){
+        fprintf(stderr, "Unable to read source file %s\n", src);
+        return -1;
     }
 
     // get size of source file and send to destination
@@ -28,8 +28,8 @@ int copy(const char *src, const char *dest) {
     struct stat fileinfo = {0};
     if (fstat(in, &fileinfo) < 0) {
         fprintf(stderr, "Unable to read size of file %s\n", dest);
-        close(in);
         close(out);
+        close(in);
         return -1;
     }
 
@@ -38,8 +38,13 @@ int copy(const char *src, const char *dest) {
         printf("Copied %ld bytes from %s to %s\n", fileinfo.st_size, src, dest);
     }
 
-    close(in);
     close(out);
+    close(in);
+
+    // update src file access time
+    char touch[PATH_MAX + 6];
+    sprintf(touch, "touch \"%s\"", src);
+    system(touch);
 
     return result;
 }
