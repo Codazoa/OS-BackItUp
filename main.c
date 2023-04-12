@@ -174,7 +174,7 @@ void runRestore(char *path){
             // is a file
             if (DEBUG) printf("%s\n", entry->d_name);
 
-            // increment number of files and add file name onto dir_list
+            // increment number of files and add file name onto file_list
             num_files++;
             file_list = realloc(file_list, num_files * sizeof(char *));
             file_list[num_files - 1] = strdup(entry->d_name);
