@@ -78,7 +78,6 @@ void runBackup(char *path){
         // sprintf(name, "%s", entry->d_name);
         if (entry->d_type == DT_DIR) {
             // is a directory
-            if (DEBUG) printf("%s [directory]\n", entry->d_name);
 
             // don't add the . or .. directories to the list
             if (strcmp(entry->d_name, ".") == 0 || strcmp(entry->d_name, "..") == 0) {
@@ -88,13 +87,13 @@ void runBackup(char *path){
             // does the current directory have a .backup folder
             if (strcmp(entry->d_name, ".backup") == 0) {
                 has_backup_dir = 1;
-                num_dirs--;
+            } else {
+                // increment number of directories and add directory name onto dir_list
+                num_dirs++;
+                dir_list = realloc(dir_list, num_dirs * sizeof(char *));
+                dir_list[num_dirs - 1] = strdup(entry->d_name);
             }
 
-            // increment number of directories and add directory name onto dir_list
-            num_dirs++;
-            dir_list = realloc(dir_list, num_dirs * sizeof(char *));
-            dir_list[num_dirs - 1] = strdup(entry->d_name);
         } else {
             // is a file
             if (DEBUG) printf("%s\n", entry->d_name);
