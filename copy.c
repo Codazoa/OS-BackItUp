@@ -1,5 +1,7 @@
 #include "copy.h"
 
+//copy
+//This function takes a source file and copies the contents into a destination file
 int copy(const char *src, const char *dest) {
     int in, out;
     // Open source file
@@ -46,6 +48,8 @@ int copy(const char *src, const char *dest) {
     return result;
 }
 
+//backup
+//This function saves files into the appropriate backup directory if it exists
 void *backup(void *args) {
 
     Copy_args_t *file = (Copy_args_t *)args;
@@ -54,6 +58,7 @@ void *backup(void *args) {
     char backup_path[PATH_MAX];
     char backup_file_name[PATH_MAX];
 
+    //Adjust path accordingly
     strcpy(file_path, file->path);
     strcat(file_path, "/");
     char *src = strcat(file_path, file->file_name);
@@ -82,8 +87,8 @@ void *backup(void *args) {
         }
         
         if (src_stat.st_mtime > dest_stat.st_mtime) {
-            printf("WARNING: Overwriting %s\n", backup_file_name);
-            remove(dest);
+            printf("WARNING: Overwriting %s\n", backup_file_name);  //Warn the user we are overwriting a file
+            remove(dest);                                           //Delete the destination file, then copy over the new file
             if (copy(src, dest) < 0) {
                 fprintf(stderr, "Unable to copy %s into backup %s.bak\n", file->file_name, file->file_name);
             } 
@@ -100,6 +105,8 @@ void *backup(void *args) {
     return NULL;
 }
 
+//restore
+//This function will overwrite a file with its corresponding version in the backup directory
 void *restore(void *args) {
 
     Copy_args_t *file = (Copy_args_t *)args;
@@ -151,6 +158,8 @@ void *restore(void *args) {
     return NULL;
 }
 
+//remove_bak_extension
+//This function will clean up files after we are done and remove the .bak extension
 void remove_bak_extension(char *filename) {
     int len = strlen(filename);
     // step backwards through the filename
