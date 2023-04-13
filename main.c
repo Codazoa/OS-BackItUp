@@ -1,3 +1,28 @@
+/*/////////////////////////////////////////////////////////////////////////////////////////////////
+//                                                                                               //
+//                                                         ___________________________.          //  
+//                                                        |;;|                     |;;||         //  
+//  Group: Six-One(-2)                                    |[]|---------------------|[]||         //  
+//  Authors:                                              |;;|    |\ /`\ / |/      |;;||         //  
+//      Cody Vernon                                       |;;|    |< |-| | |       |;;||         //  
+//      Jack Harvison                                     |;;|    |/ | | \ |\      |;;||         //  
+//      Drake Farmer                                      |;;|    ___   | | |\     |;;||         //  
+//                                                        |;;|  |  |    | | |/     |;;||         //              
+//  Assignment: BackItUp file backup system               |;;|  |  |    |_| |      |;;||         //  
+//  Course: CS 460 Operating Systems                      |;;|_____________________|;;||         //  
+//                                                        |;;;;;;;;;;;;;;;;;;;;;;;;;;;||         //  
+//                                                        |;;;;;;_______________ ;;;;;||         //  
+//                                                        |;;;;;|  ___          |;;;;;||         //  
+//                                                        |;;;;;| |;;;|         |;;;;;||         //  
+//                                                        |;;;;;| |;;;|         |;;;;;||         //  
+//                                                        |;;;;;| |;;;|         |;;;;;||         //  
+//                                                        |;;;;;| |;;;|         |;;;;;||         //  
+//                                                        |;;;;;| |___|         |;;;;;||         //  
+//                                                        \_____|_______________|_____||         //  
+//                                                         ~~~~~^^^^^^^^^^^^^^^^^~~~~~~          //      
+//                                                                                               //  
+/////////////////////////////////////////////////////////////////////////////////////////////////*/
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <pthread.h>
@@ -15,6 +40,8 @@
 // spawn a new thread for every file in the directory to copy each one into .backup
 // go down a folder
 
+//Dir_info_t structure
+//Used to hold information about a directory
 typedef struct {
     char *path;
     int num_files;
@@ -44,8 +71,10 @@ int main(int argc, char const *argv[]){
         exit(1);
     }
 
+    //If we're in debug state, let the user know the operation and directory path
     if (DEBUG) printf("Operation %d, Directory Path: %s\n", operation, dir_path);
 
+    //run the appropriate operation, 0 = backup and 1 = restore
     if (operation == 0) {
         runBackup(dir_path);
     } else {
@@ -55,12 +84,17 @@ int main(int argc, char const *argv[]){
     return 0;
 }
 
+//parseArgs
+//This function takes in argc, argv, and operation. It reads in the arguments from the command line and sets the operation accordingly
 void parseArgs(int argc, char const *argv[], int *operation){
     for (int i = 1; i < argc; i++) {
         if (strcmp(argv[i], "-r") == 0) *operation = 1;
     }
 }
 
+//runBackup
+//This function will back up all files to their same layer .backup folder
+//If no .backup folder exists it will create one
 void runBackup(char *path){
     if (DEBUG) printf("\nBackup: %s\n", path);
 
@@ -87,8 +121,9 @@ void runBackup(char *path){
         // recursively go down another folder
         char new_path[PATH_MAX];
         sprintf(new_path, "%s/%s", path, dir_info->dir_list[i]);
-        runBackup(new_path);
+        runBackup(new_path);//For each layer of directories, execute runBackup at this layer
     }
+    //Free memory
     free_list(dir_info->dir_list, dir_info->num_dirs);
 
     pthread_t threads[dir_info->num_files];
@@ -99,6 +134,7 @@ void runBackup(char *path){
         // spawn off a thread for the file
         copy_args[i].path = path;
         copy_args[i].file_name = dir_info->file_list[i];
+        //Spin up a thread
         if (pthread_create(&threads[i], NULL, backup, &copy_args[i]) != 0 ) {
             perror("Error creating thread");
         }
@@ -108,6 +144,7 @@ void runBackup(char *path){
     for (int i = 0; i < dir_info->num_files; i++) {
         pthread_join(threads[i], NULL);
     }
+    //Free memory
     free_list(dir_info->file_list, dir_info->num_files);
 
     // base case when there are no more folders 
@@ -116,9 +153,13 @@ void runBackup(char *path){
         return;
     }
 
+    //Free memory
     free(dir_info);
 }
 
+
+//runRestore
+//This function will overwrite all applicable files to their most recent backed up version
 void runRestore(char *path){
     char new_bak_path[PATH_MAX];
     sprintf(new_bak_path, "%s/%s", path, ".backup");
@@ -135,6 +176,7 @@ void runRestore(char *path){
         sprintf(new_path, "%s/%s", path, dir_info->dir_list[i]);
         runRestore(new_path);
     }
+    //Free memory
     free_list(dir_info->dir_list, dir_info->num_dirs);
     free_list(dir_info->file_list, dir_info->num_files);
 
@@ -155,11 +197,12 @@ void runRestore(char *path){
         // spawn off a thread for the file
         copy_args[i].path = dir_info->path;
         copy_args[i].file_name = backup_info->file_list[i];
-
+        //Spin up a new thread
         if (pthread_create(&threads[i], NULL, restore, &copy_args[i]) != 0 ) {
             perror("Error creating thread");
         }
     }
+    //Free memory
     free_list(backup_info->dir_list, backup_info->num_dirs);
 
     // join the threads
@@ -176,10 +219,13 @@ void runRestore(char *path){
         return;
     }
 
+    //Free memory
     free(backup_info);
     free(dir_info);
 }
 
+//getDirInfo
+//This function collects all information in a directory and returns a Dir_info_t struct with the results
 Dir_info_t *getDirInfo(char *path) {
     DIR *dir;
     struct dirent *entry = NULL;
@@ -232,6 +278,7 @@ Dir_info_t *getDirInfo(char *path) {
     }
     closedir(dir);
 
+    //Fill the struct with our data
     Dir_info_t *return_info = malloc(sizeof(Dir_info_t));
     return_info->path = path; 
     return_info->num_files = num_files;
@@ -239,9 +286,12 @@ Dir_info_t *getDirInfo(char *path) {
     return_info->file_list = file_list;
     return_info->dir_list = dir_list;
     return_info->has_backup_dir = has_backup_dir;
-    return return_info;
+    return return_info; //Return the struct
 }
 
+
+//free_list
+//This function frees all items within a given list
 void free_list(char **list, int size){
     for (int i = 0; i < size; i++) {
         free(list[i]);
